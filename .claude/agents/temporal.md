@@ -262,6 +262,109 @@ async def start_embedding(document_id: str, provider: str = "openai"):
 - 액티비티는 멱등성 보장 권장
 - 긴 작업은 heartbeat 사용
 
+## Temporal 서비스 실행 (Docker)
+
+### docker-compose.yml에 추가
+
+```yaml
+services:
+  # 기존 Qdrant 서비스...
+
+  temporal:
+    image: temporalio/auto-setup:latest
+    ports:
+      - "7233:7233"   # gRPC (워커/클라이언트 연결)
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_SEEDS=temporal-db
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+    depends_on:
+      - temporal-db
+
+  temporal-db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=temporal
+      - POSTGRES_PASSWORD=temporal
+    volumes:
+      - temporal-db-data:/var/lib/postgresql/data
+
+  temporal-ui:
+    image: temporalio/ui:latest
+    ports:
+      - "8080:8080"   # Temporal Web UI
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+    depends_on:
+      - temporal
+
+volumes:
+  temporal-db-data:
+```
+
+### 간단한 설정 (개발용, SQLite)
+
+```yaml
+services:
+  temporal:
+    image: temporalio/auto-setup:latest
+    ports:
+      - "7233:7233"
+    environment:
+      - DB=sqlite
+      - SKIP_DEFAULT_NAMESPACE_CREATION=false
+
+  temporal-ui:
+    image: temporalio/ui:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+    depends_on:
+      - temporal
+```
+
+### 서비스 실행
+
+```bash
+# Temporal 포함 전체 서비스 실행
+docker compose up -d
+
+# Temporal만 실행
+docker compose up -d temporal temporal-ui
+```
+
+### 접속 정보
+
+| 서비스 | URL | 용도 |
+|--------|-----|------|
+| Temporal gRPC | localhost:7233 | 워커/클라이언트 연결 |
+| Temporal UI | http://localhost:8080 | 웹 대시보드 |
+
+### 연결 확인
+
+```bash
+# Temporal CLI로 확인 (선택)
+temporal operator namespace list
+
+# 또는 Python으로 확인
+python -c "
+import asyncio
+from temporalio.client import Client
+
+async def check():
+    client = await Client.connect('localhost:7233')
+    print('Connected to Temporal!')
+
+asyncio.run(check())
+"
+```
+
+---
+
 ## 워커 실행
 
 ```bash

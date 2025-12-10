@@ -144,13 +144,63 @@ docker compose up -d
 
 코딩 작업 시 `.claude/agents/` 하위의 에이전트 가이드를 참조하여 진행한다.
 
+### 커맨드 (워크플로우)
+
+| 커맨드 | 파일 | 용도 |
+|--------|------|------|
+| `/spec {domain}` | `commands/spec.md` | 도메인 스펙 문서 생성 |
+| `/feature {domain}` | `commands/feature.md` | 스펙 기반 기능 구현 |
+| `/review {domain}` | `commands/review.md` | 코드 리뷰 및 품질 검증 |
+
+### 구현 에이전트 (Builder)
+
+| 에이전트 | 파일 | 용도 | 사용 시점 |
+|----------|------|------|-----------|
+| Schema Builder | `agents/schema-builder.md` | Pydantic 스키마 생성 | `/feature` 내부 |
+| Service Builder | `agents/service-builder.md` | 서비스 레이어 구현 | `/feature` 내부 |
+| API Builder | `agents/api-builder.md` | FastAPI 라우터 구현 | `/feature` 내부 |
+| Test Builder | `agents/test-builder.md` | 테스트 코드 작성 | `/feature` 내부 |
+
+### 단축 가이드 (직접 참조용)
+
 | 에이전트 | 파일 | 용도 |
 |----------|------|------|
-| API 개발 | `agents/api.md` | FastAPI 엔드포인트 구현 |
-| 도메인 개발 | `agents/domain.md` | 비즈니스 로직 구현 |
+| API 개발 | `agents/api.md` | FastAPI 엔드포인트 구현 요약 |
+| 도메인 개발 | `agents/domain.md` | 비즈니스 로직 구현 요약 |
 | 임베딩 확장 | `agents/embedding.md` | 새 임베딩 모델 추가 |
 | Temporal | `agents/temporal.md` | 워크플로우/액티비티 구현 |
-| 테스트 | `agents/test.md` | 테스트 코드 작성 |
+| 테스트 | `agents/test.md` | 테스트 코드 작성 요약 |
+
+### 분석/검토 에이전트
+
+| 에이전트 | 파일 | 용도 | 사용 시점 |
+|----------|------|------|-----------|
+| Risk Analyst | `agents/risk-analyst.md` | 리스크/장애 분석 | `/spec` 내부 |
+| Security Analyst | `agents/security-analyst.md` | 보안 검토 | `/spec` 내부 |
+| Test Designer | `agents/test-designer.md` | 테스트 시나리오 설계 | `/spec` 내부 |
+| Spec Reviewer | `agents/spec-reviewer.md` | 스펙 준수 검증 | `/review` 내부 |
+| Code Reviewer | `agents/code-reviewer.md` | 코드 품질 검증 | `/review` 내부 |
+| Test Reviewer | `agents/test-reviewer.md` | 테스트 커버리지 검증 | `/review` 내부 |
+
+### 에이전트 사용 흐름
+
+```
+/spec {domain}
+    ├─→ risk-analyst      (8장 리스크)
+    ├─→ security-analyst  (8.3장 보안)
+    └─→ test-designer     (9장 테스트)
+            ↓
+/feature {domain}
+    ├─→ schema-builder    (schemas.py)
+    ├─→ service-builder   (service.py)
+    ├─→ api-builder       (api/v1/*.py)
+    └─→ test-builder      (tests/)
+            ↓
+/review {domain}
+    ├─→ spec-reviewer     (스펙 준수)
+    ├─→ code-reviewer     (코드 품질)
+    └─→ test-reviewer     (테스트 검증)
+```
 
 ## 향후 계획
 

@@ -26,11 +26,34 @@
 
 ## 사용 에이전트
 
-| 에이전트 | 파일 | 역할 |
-|----------|------|------|
-| Spec Reviewer | `agents/spec-reviewer.md` | 스펙 준수 검증 |
-| Code Reviewer | `agents/code-reviewer.md` | 코드 품질 검증 |
-| Test Reviewer | `agents/test-reviewer.md` | 테스트 커버리지 검증 |
+| 에이전트 | 파일 | 역할 | 출력 |
+|----------|------|------|------|
+| Spec Reviewer | `agents/spec-reviewer.md` | 스펙 준수 검증 | 스펙 준수율, 누락/불일치 항목 |
+| Code Reviewer | `agents/code-reviewer.md` | 코드 품질 검증 | 품질 점수, Critical/Major/Minor 이슈 |
+| Test Reviewer | `agents/test-reviewer.md` | 테스트 커버리지 검증 | 커버리지 %, 누락된 테스트 |
+
+### 에이전트 활용 방법
+
+각 에이전트 가이드 파일의 **검증 프로세스**와 **출력 형식**을 따릅니다:
+
+```
+1. agents/spec-reviewer.md 참조
+   → 스펙 2~8장과 구현 코드 대조
+   → 섹션별 준수율 계산
+   → "스펙 준수 검증 결과" 형식으로 출력
+
+2. agents/code-reviewer.md 참조
+   → Python 컨벤션, 코드 구조, 보안, 성능 검증
+   → Critical/Major/Minor 분류
+   → "코드 품질 검증 결과" 형식으로 출력
+
+3. agents/test-reviewer.md 참조
+   → 테스트 커버리지 및 품질 검증
+   → 누락된 테스트 식별
+   → "테스트 커버리지 검증 결과" 형식으로 출력
+```
+
+**중요**: 아래 "3. 스펙 준수 검증", "4. 코드 퀄리티 검증", "5. 테스트 코드 검증" 섹션은 **요약본**입니다. 상세한 검증 항목과 출력 형식은 각 에이전트 가이드 파일을 참조하세요.
 
 ---
 
