@@ -9,6 +9,8 @@
 ## 작업 흐름
 
 ```
+[0. 브랜치 확인/생성] ←── 긴급도 판단
+        ↓
 [1. 버그 정보 수집]
         ↓
 [2. 관련 코드 파악]
@@ -23,12 +25,48 @@
         ↓
 [7. 문서 최신화] ←── 스펙/코드 불일치 확인 (필수)
         ↓
-[8. 완료]
+[8. 커밋 및 PR]
 ```
 
 ---
 
 ## 작업 순서
+
+### 0. 브랜치 확인/생성
+
+#### 현재 브랜치 확인
+```bash
+git branch --show-current
+git status
+```
+
+#### 긴급도 판단
+
+| 긴급도 | 기준 | 브랜치 전략 |
+|--------|------|-------------|
+| 긴급 (프로덕션 장애) | 서비스 중단, 데이터 손실 | `hotfix/*` → main 직접 |
+| 일반 | 기능 오류, 비정상 동작 | `fix/*` → develop |
+| 낮음 | 사소한 버그, UI 오류 | 현재 feature 브랜치에서 |
+
+#### 브랜치 생성
+
+**일반 버그 수정:**
+```bash
+git checkout develop
+git pull origin develop
+git checkout -b fix/$ARGUMENTS-{버그설명}
+```
+
+**긴급 수정 (hotfix):**
+```bash
+git checkout main
+git pull origin main
+git checkout -b hotfix/$ARGUMENTS-{버그설명}
+```
+
+**브랜치 네이밍:**
+- 일반: `fix/{domain}-{description}`
+- 긴급: `hotfix/{domain}-{description}`
 
 ### 1. 버그 정보 수집
 
@@ -124,10 +162,58 @@ pytest tests/ -k "$ARGUMENTS" -v
 | {섹션} | {내용} |
 ```
 
-### 8. 완료 보고
+### 8. 커밋 및 PR
+
+#### 커밋
+```bash
+git add .
+git commit -m "fix: $ARGUMENTS {버그 설명}
+
+- 원인: {원인}
+- 수정: {수정 내용}"
+```
+
+#### PR 생성
+
+**일반 수정 (develop으로):**
+```bash
+git push -u origin fix/$ARGUMENTS-{버그설명}
+```
+
+**긴급 수정 (main으로):**
+```bash
+git push -u origin hotfix/$ARGUMENTS-{버그설명}
+# PR: hotfix/* → main
+# 머지 후: main → develop 역머지 필요
+```
+
+**PR 템플릿:**
+```markdown
+## 요약
+$ARGUMENTS 버그 수정: {버그 설명}
+
+## 원인
+- {버그 원인}
+
+## 수정 내용
+- {수정 파일}: {수정 내용}
+
+## 테스트
+- [x] 버그 재현 테스트 추가
+- [x] 기존 테스트 통과
+- [x] 회귀 테스트 확인
+
+## 긴급도
+- [ ] 일반 / [ ] 긴급 (hotfix)
+```
+
+### 9. 완료 보고
 
 ```
 ✅ 버그 수정 완료
+
+## 브랜치
+- fix/$ARGUMENTS-{버그설명}
 
 ## 수정 내용
 - {수정한 파일}: {수정 내용}
@@ -135,19 +221,13 @@ pytest tests/ -k "$ARGUMENTS" -v
 ## 원인
 - {버그 원인 설명}
 
-## 영향 범위
-- {영향받는 기능}
-
 ## 문서 업데이트
-- [ ] 스펙 문서 확인/수정 완료
-- [ ] 스펙 ↔ 코드 일치 확인
+- [x] 스펙 문서 확인/수정 완료
 
-## 테스트
-- [ ] 기존 테스트 통과
-- [ ] 버그 재현 테스트 추가
-
-## 커밋
-fix: {버그 설명}
+## 다음 단계
+1. PR 리뷰 요청
+2. develop (또는 main) 브랜치에 머지
+3. hotfix인 경우 main → develop 역머지
 ```
 
 ---

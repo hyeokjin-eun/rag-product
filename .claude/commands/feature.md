@@ -9,6 +9,8 @@
 ## 작업 흐름
 
 ```
+[0. 브랜치 확인/생성] ←── 작업 범위 판단
+        ↓
 [1. 스펙 문서 확인]
         ↓
 [2. 코드 재활용 분석] ←── agents/code-analyzer.md
@@ -26,7 +28,7 @@
         ↓
 [6. 문서 최신화] ←── 스펙 문서 업데이트 (필수)
         ↓
-[7. 완료]
+[7. 커밋 및 PR]
 ```
 
 ## 사용 에이전트
@@ -42,6 +44,49 @@
 ---
 
 ## 작업 순서
+
+### 0. 브랜치 확인/생성
+
+#### 현재 브랜치 확인
+```bash
+git branch --show-current
+git status
+```
+
+#### 작업 범위 판단
+
+| 작업 규모 | 기준 | 브랜치 전략 |
+|-----------|------|-------------|
+| 소규모 | 파일 1-3개, 단순 기능 | 현재 feature 브랜치에서 계속 |
+| 중규모 | 파일 4-10개, 도메인 1개 | 새 feature 브랜치 생성 |
+| 대규모 | 파일 10개+, 여러 도메인 | 브랜치 분리 필요, 사용자와 논의 |
+
+#### 브랜치 생성 (필요시)
+
+```bash
+# develop 브랜치에서 분기
+git checkout develop
+git pull origin develop
+git checkout -b feature/$ARGUMENTS-{description}
+```
+
+**브랜치 네이밍:** `feature/{domain}-{description}`
+- 예: `feature/documents-upload-api`
+- 예: `feature/search-vector-query`
+
+#### 대규모 작업 시 분리 제안
+
+작업이 대규모인 경우 사용자에게 분리를 제안하세요:
+```markdown
+⚠️ 작업 범위가 큽니다. 다음과 같이 분리를 권장합니다:
+
+1. `feature/$ARGUMENTS-schemas` - 스키마 정의
+2. `feature/$ARGUMENTS-service` - 비즈니스 로직
+3. `feature/$ARGUMENTS-api` - API 엔드포인트
+
+각 브랜치별로 PR을 생성하면 리뷰가 용이합니다.
+분리해서 진행할까요?
+```
 
 ### 1. 스펙 문서 확인
 
@@ -193,12 +238,58 @@ pytest tests/ -v
 | {항목} | {원래 스펙} | {변경된 내용} | {변경 이유} |
 ```
 
-### 11. 완료 보고
+### 11. 커밋 및 PR
+
+#### 커밋
+```bash
+git add .
+git commit -m "feat: $ARGUMENTS 도메인 구현
+
+- schemas.py: 데이터 모델 정의
+- service.py: 비즈니스 로직 구현
+- api/v1/$ARGUMENTS.py: API 엔드포인트
+- 단위/통합 테스트 작성"
+```
+
+#### PR 생성 (develop 브랜치로)
+```bash
+git push -u origin feature/$ARGUMENTS-{description}
+```
+
+**PR 템플릿:**
+```markdown
+## 요약
+$ARGUMENTS 도메인 신규 구현
+
+## 변경 내용
+- 스키마 정의 (schemas.py)
+- 비즈니스 로직 (service.py)
+- API 엔드포인트 (api/v1/$ARGUMENTS.py)
+- 테스트 코드
+
+## 관련 스펙
+- `.claude/specs/$ARGUMENTS.md`
+
+## 테스트
+- [x] 단위 테스트 통과
+- [x] 통합 테스트 통과
+- [x] `/review $ARGUMENTS` 실행
+
+## 체크리스트
+- [x] 코드 컨벤션 준수
+- [x] 타입 힌트 추가
+- [x] 문서 최신화 완료
+```
+
+### 12. 완료 보고
 
 ```
 ✅ $ARGUMENTS 도메인 구현 완료
 
-생성된 파일:
+## 브랜치
+- feature/$ARGUMENTS-{description}
+
+## 생성된 파일
 - app/domains/$ARGUMENTS/schemas.py
 - app/domains/$ARGUMENTS/service.py
 - app/domains/$ARGUMENTS/repository.py
@@ -206,10 +297,10 @@ pytest tests/ -v
 - tests/unit/domains/test_$ARGUMENTS.py
 - tests/integration/test_$ARGUMENTS_api.py
 
-다음 단계:
-1. 테스트 실행: pytest tests/
-2. API 문서 확인: http://localhost:8000/docs
-3. 다른 도메인과 연동이 필요하면 해당 도메인 구현
+## 다음 단계
+1. PR 리뷰 요청
+2. develop 브랜치에 머지
+3. 다른 도메인 연동 필요시 해당 도메인 구현
 ```
 
 ## 스펙 문서 섹션 매핑
