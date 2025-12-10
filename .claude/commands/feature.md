@@ -139,7 +139,7 @@ tests/
 ### 8. Temporal 워크플로우 (해당시)
 
 스펙 문서 5.3장에 워크플로우가 정의된 경우:
-- `.claude/agents/temporal.md` 가이드 참조
+- `.claude/agents/_project/temporal.md` 가이드 참조 (프로젝트 특화)
 - `workers/workflows/`, `workers/activities/` 에 구현
 
 ### 9. 빌드 및 검증
