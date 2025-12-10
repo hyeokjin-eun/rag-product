@@ -216,6 +216,8 @@ feat: documents 도메인 업로드 API 구현
 |--------|------|------|
 | `/spec {domain}` | `commands/spec.md` | 도메인 스펙 문서 생성 |
 | `/feature {domain}` | `commands/feature.md` | 스펙 기반 기능 구현 |
+| `/fix {domain}` | `commands/fix.md` | 버그 수정 |
+| `/change {domain}` | `commands/change.md` | 기존 기능 변경/개선 |
 | `/review {domain}` | `commands/review.md` | 코드 리뷰 및 품질 검증 |
 
 ### 구현 에이전트 (Builder)
@@ -250,6 +252,7 @@ feat: documents 도메인 업로드 API 구현
 
 ### 에이전트 사용 흐름
 
+**신규 개발:**
 ```
 /spec {domain}
     ├─→ risk-analyst      (8장 리스크)
@@ -266,6 +269,19 @@ feat: documents 도메인 업로드 API 구현
     ├─→ spec-reviewer     (스펙 준수)
     ├─→ code-reviewer     (코드 품질)
     └─→ test-reviewer     (테스트 검증)
+```
+
+**기존 코드 수정:**
+```
+/fix {domain}              /change {domain}
+    │                          │
+    ├─→ 버그 정보 수집          ├─→ 변경 요구사항 수집
+    ├─→ 영향 범위 분석          ├─→ 스펙 문서 수정
+    ├─→ 코드 수정               ├─→ 코드 수정
+    └─→ 테스트 확인             ├─→ 테스트 수정
+            ↓                   └─→ /review 실행
+      커밋 (fix: ...)                  ↓
+                               커밋 (feat/refactor: ...)
 ```
 
 ## 향후 계획
