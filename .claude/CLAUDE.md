@@ -212,13 +212,30 @@ feat: documents 도메인 업로드 API 구현
 
 ### 커맨드 (워크플로우)
 
-| 커맨드 | 파일 | 용도 |
-|--------|------|------|
-| `/spec {domain}` | `commands/spec.md` | 도메인 스펙 문서 생성 |
-| `/feature {domain}` | `commands/feature.md` | 스펙 기반 기능 구현 |
-| `/fix {domain}` | `commands/fix.md` | 버그 수정 |
-| `/change {domain}` | `commands/change.md` | 기존 기능 변경/개선 |
-| `/review {domain}` | `commands/review.md` | 코드 리뷰 및 품질 검증 |
+| 커맨드 | 파일 | 용도 | 포함 단계 |
+|--------|------|------|-----------|
+| `/spec {domain}` | `commands/spec.md` | 도메인 스펙 문서 생성 | 요구사항 → 분석 → 스펙 작성 |
+| `/feature {domain}` | `commands/feature.md` | 스펙 기반 신규 기능 구현 | 스펙확인 → **코드재활용분석** → 구현 → **빌드/검증** |
+| `/fix {domain}` | `commands/fix.md` | 버그 수정 | 버그분석 → 수정 → **빌드/검증** → 테스트 |
+| `/change {domain}` | `commands/change.md` | 기존 기능 변경/개선 | 영향분석 → **코드재활용분석** → 수정 → **빌드/검증** → /review |
+| `/review {domain}` | `commands/review.md` | 코드 리뷰 및 품질 검증 | 스펙준수 → 코드품질 → 테스트커버리지 |
+
+#### 커맨드 선택 가이드
+
+| 상황 | 사용 커맨드 |
+|------|-------------|
+| 새로운 도메인/기능 개발 | `/spec` → `/feature` → `/review` |
+| 기존 기능에 새 요소 추가 | `/change` |
+| 기존 기능의 동작 변경 | `/change` |
+| 버그 수정 (기능 변경 없음) | `/fix` |
+| 리팩토링 (기능 변경 없음) | `/change` |
+| 코드 품질 점검 | `/review` |
+
+### 분석 에이전트
+
+| 에이전트 | 파일 | 용도 | 사용 시점 |
+|----------|------|------|-----------|
+| Code Analyzer | `agents/code-analyzer.md` | 기존 코드 재활용 분석 | `/feature`, `/change` 내부 |
 
 ### 구현 에이전트 (Builder)
 
@@ -260,10 +277,12 @@ feat: documents 도메인 업로드 API 구현
     └─→ test-designer     (9장 테스트)
             ↓
 /feature {domain}
+    ├─→ code-analyzer     (코드 재활용 분석)    ★ NEW
     ├─→ schema-builder    (schemas.py)
     ├─→ service-builder   (service.py)
     ├─→ api-builder       (api/v1/*.py)
-    └─→ test-builder      (tests/)
+    ├─→ test-builder      (tests/)
+    └─→ 빌드/검증         (mypy, ruff, pytest)  ★ NEW
             ↓
 /review {domain}
     ├─→ spec-reviewer     (스펙 준수)
@@ -273,15 +292,29 @@ feat: documents 도메인 업로드 API 구현
 
 **기존 코드 수정:**
 ```
-/fix {domain}              /change {domain}
-    │                          │
-    ├─→ 버그 정보 수집          ├─→ 변경 요구사항 수집
-    ├─→ 영향 범위 분석          ├─→ 스펙 문서 수정
-    ├─→ 코드 수정               ├─→ 코드 수정
-    └─→ 테스트 확인             ├─→ 테스트 수정
-            ↓                   └─→ /review 실행
-      커밋 (fix: ...)                  ↓
-                               커밋 (feat/refactor: ...)
+/fix {domain}                    /change {domain}
+    │                                │
+    ├─→ 버그 정보 수집                ├─→ 변경 요구사항 수집
+    ├─→ 영향 범위 분석                ├─→ code-analyzer (재활용 분석)  ★
+    ├─→ 코드 수정                     ├─→ 스펙 문서 수정
+    ├─→ 빌드/검증 ★                   ├─→ 코드 수정
+    └─→ 테스트 확인                   ├─→ 테스트 수정
+            ↓                        ├─→ 빌드/검증 ★
+      커밋 (fix: ...)                └─→ /review 실행
+                                           ↓
+                                   커밋 (feat/refactor: ...)
+```
+
+**빌드/검증 단계 상세:**
+```bash
+# 1. 타입 체크
+mypy app/domains/{domain}/
+
+# 2. 린트 검사
+ruff check app/domains/{domain}/
+
+# 3. 테스트 실행
+pytest tests/ -k "{domain}" -v
 ```
 
 ## 향후 계획

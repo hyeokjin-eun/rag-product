@@ -13,17 +13,21 @@
         ↓
 [2. 현재 상태 파악]
         ↓
-[3. 변경 영향 분석]
+[3. 코드 재활용 분석] ←── agents/code-analyzer.md
         ↓
-[4. 스펙 문서 수정]
+[4. 변경 영향 분석]
         ↓
-[5. 코드 수정]
+[5. 스펙 문서 수정]
         ↓
-[6. 테스트 수정]
+[6. 코드 수정]
         ↓
-[7. /review 실행]
+[7. 테스트 수정]
         ↓
-[8. 완료]
+[8. 빌드 및 검증]
+        ↓
+[9. /review 실행]
+        ↓
+[10. 완료]
 ```
 
 ---
@@ -55,7 +59,23 @@ app/domains/$ARGUMENTS/
 app/api/v1/$ARGUMENTS.py      # 현재 API
 ```
 
-### 3. 변경 영향 분석
+### 3. 코드 재활용 분석
+
+`.claude/agents/code-analyzer.md` 가이드를 참조하여 변경 시 재활용 가능한 코드 분석:
+
+**분석 대상:**
+```
+app/domains/*/schemas.py     # 다른 도메인의 재활용 가능한 스키마
+app/domains/*/service.py     # 다른 도메인의 재활용 가능한 로직
+app/core/                    # 공통 유틸리티, 예외
+app/utils/                   # 헬퍼 함수
+```
+
+**분석 결과 보고:**
+- 변경 시 새로 가져올 수 있는 공통 코드
+- 이번 변경으로 공통화할 수 있는 코드 (다른 도메인에서도 사용 가능)
+
+### 4. 변경 영향 분석
 
 변경이 영향을 미치는 범위를 분석하세요:
 
@@ -88,7 +108,7 @@ app/api/v1/$ARGUMENTS.py      # 현재 API
 이대로 진행할까요?
 ```
 
-### 4. 스펙 문서 수정
+### 5. 스펙 문서 수정
 
 `.claude/specs/$ARGUMENTS.md`의 해당 섹션을 수정하세요:
 
@@ -98,7 +118,7 @@ app/api/v1/$ARGUMENTS.py      # 현재 API
 - 에러 추가/변경 → 6장 수정
 - 테스트 케이스 추가 → 9장 수정
 
-### 5. 코드 수정
+### 6. 코드 수정
 
 스펙 변경에 맞춰 코드를 수정하세요:
 
@@ -110,7 +130,7 @@ app/api/v1/$ARGUMENTS.py      # 현재 API
 | 5. 외부 연동 | repository.py |
 | 6. 에러 처리 | exceptions.py, service.py |
 
-### 6. 테스트 수정
+### 7. 테스트 수정
 
 변경된 기능에 맞게 테스트를 수정/추가하세요:
 
@@ -121,11 +141,37 @@ app/api/v1/$ARGUMENTS.py      # 현재 API
 | 로직 변경 | 해당 로직 테스트 수정 |
 | 에러 추가 | 에러 케이스 테스트 추가 |
 
-### 7. /review 실행
+### 8. 빌드 및 검증
+
+수정 완료 후 다음을 실행하여 검증:
+
+```bash
+# 1. 타입 체크
+mypy app/domains/$ARGUMENTS/
+
+# 2. 린트 검사
+ruff check app/domains/$ARGUMENTS/
+ruff check app/api/v1/$ARGUMENTS.py
+
+# 3. 단위 테스트
+pytest tests/unit/domains/test_$ARGUMENTS.py -v
+
+# 4. 통합 테스트
+pytest tests/integration/test_$ARGUMENTS_api.py -v
+
+# 5. 영향받는 다른 도메인 테스트 (있는 경우)
+pytest tests/ -k "{related_domain}" -v
+```
+
+**검증 실패 시:**
+- 에러 메시지 확인 후 해당 코드 수정
+- 모든 테스트 통과할 때까지 반복
+
+### 9. /review 실행
 
 변경 완료 후 `/review $ARGUMENTS` 를 실행하여 검증하세요.
 
-### 8. 완료 보고
+### 10. 완료 보고
 
 ```
 ✅ 기능 변경 완료
