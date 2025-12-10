@@ -11,25 +11,30 @@
 ```
 [1. 스펙 문서 확인]
         ↓
-[2. 구현 계획 수립]
+[2. 코드 재활용 분석] ←── agents/code-analyzer.md
         ↓
-[3. 에이전트 구현] ─────────────────────┐
+[3. 구현 계획 수립]
+        ↓
+[4. 에이전트 구현] ─────────────────────┐
         │                              │
         ├─→ 📋 schema-builder         │  순차 실행
         ├─→ ⚙️ service-builder        │  (의존성 있음)
         ├─→ 🌐 api-builder            │
         └─→ 🧪 test-builder           │
         ↓  ←───────────────────────────┘
-[4. 통합 확인]
+[5. 빌드 및 검증]
         ↓
-[5. 완료]
+[6. 문서 최신화] ←── 스펙 문서 업데이트 (필수)
+        ↓
+[7. 완료]
 ```
 
 ## 사용 에이전트
 
 | 에이전트 | 파일 | 역할 | 의존성 |
 |----------|------|------|--------|
-| Schema Builder | `agents/schema-builder.md` | Pydantic 스키마 생성 | - |
+| Code Analyzer | `agents/code-analyzer.md` | 기존 코드 재활용 분석 | 스펙 문서 |
+| Schema Builder | `agents/schema-builder.md` | Pydantic 스키마 생성 | 재활용 분석 |
 | Service Builder | `agents/service-builder.md` | 비즈니스 로직 구현 | schema |
 | API Builder | `agents/api-builder.md` | FastAPI 라우터 구현 | schema, service |
 | Test Builder | `agents/test-builder.md` | 테스트 코드 작성 | 전체 |
@@ -50,19 +55,47 @@
 - 사용자에게 안내: "스펙 문서가 없습니다. `/spec $ARGUMENTS`를 먼저 실행해주세요."
 - 또는 사용자가 원하면 간단히 질문 후 구현 진행 (스펙 문서 없이)
 
-### 2. 가이드 참조
+### 2. 코드 재활용 분석
+
+`.claude/agents/code-analyzer.md` 가이드를 참조하여 기존 코드 분석:
+
+**분석 대상:**
+```
+app/domains/*/schemas.py     # 재활용 가능한 스키마
+app/domains/*/service.py     # 재활용 가능한 서비스 로직
+app/infrastructure/          # 인프라 클라이언트
+app/core/                    # 공통 설정, 예외, 의존성
+app/utils/                   # 유틸리티 함수
+```
+
+**분석 결과를 사용자에게 보고:**
+```markdown
+## 코드 재활용 분석 결과
+
+### ✅ 재활용 가능
+| 항목 | 위치 | 재활용 방법 |
+|------|------|-------------|
+| {기존 코드} | {파일:라인} | {import/상속} |
+
+### 🆕 신규 구현 필요
+| 항목 | 이유 |
+|------|------|
+| {신규 요소} | {기존에 없음} |
+```
+
+### 3. 가이드 참조
 
 다음 에이전트 가이드를 읽고 구현 패턴을 확인하세요:
 - `.claude/agents/domain.md` - 도메인 구현 패턴
 - `.claude/agents/api.md` - API 구현 패턴
 - `.claude/agents/test.md` - 테스트 작성 패턴
 
-### 3. 구현 계획 수립
+### 4. 구현 계획 수립
 
 스펙 문서의 "9. 구현 체크리스트"를 기반으로 구현 계획을 세우세요.
 사용자에게 계획을 보여주고 확인받으세요.
 
-### 4. 도메인 구현
+### 5. 도메인 구현
 
 스펙 문서의 내용을 참조하여 구현:
 
@@ -86,7 +119,7 @@ app/domains/$ARGUMENTS/
 #### repository.py
 - 스펙 5장의 인프라 연동 구현
 
-### 5. API 구현
+### 6. API 구현
 
 스펙 문서 3장 "API 명세"를 참조하여 구현:
 
@@ -95,7 +128,7 @@ app/domains/$ARGUMENTS/
   - 에러 응답은 스펙 6장 참조
 - `app/api/router.py`에 `include_router` 추가
 
-### 6. 테스트 작성
+### 7. 테스트 작성
 
 스펙 문서 8장 "테스트 시나리오"를 참조하여 구현:
 
@@ -105,13 +138,62 @@ tests/
 └── integration/test_$ARGUMENTS_api.py      # 8.2 통합 테스트
 ```
 
-### 7. Temporal 워크플로우 (해당시)
+### 8. Temporal 워크플로우 (해당시)
 
 스펙 문서 5.3장에 워크플로우가 정의된 경우:
-- `.claude/agents/temporal.md` 가이드 참조
+- `.claude/agents/_project/temporal.md` 가이드 참조 (프로젝트 특화)
 - `workers/workflows/`, `workers/activities/` 에 구현
 
-### 8. 완료 보고
+### 9. 빌드 및 검증
+
+구현 완료 후 다음을 실행하여 검증:
+
+```bash
+# 1. 타입 체크 (mypy 또는 pyright 사용 시)
+mypy app/domains/$ARGUMENTS/
+
+# 2. 린트 검사
+ruff check app/domains/$ARGUMENTS/
+ruff check app/api/v1/$ARGUMENTS.py
+
+# 3. 단위 테스트 실행
+pytest tests/unit/domains/test_$ARGUMENTS.py -v
+
+# 4. 통합 테스트 실행
+pytest tests/integration/test_$ARGUMENTS_api.py -v
+
+# 5. 전체 테스트 (선택)
+pytest tests/ -v
+```
+
+**검증 실패 시:**
+- 에러 메시지 확인 후 해당 코드 수정
+- 모든 테스트 통과할 때까지 반복
+
+### 10. 문서 최신화 (필수)
+
+구현 완료 후 관련 문서를 최신화하세요:
+
+**스펙 문서 업데이트** (`.claude/specs/$ARGUMENTS.md`):
+
+| 확인 항목 | 업데이트 내용 |
+|-----------|---------------|
+| 2장 데이터 모델 | 실제 구현된 필드/타입과 일치하는지 |
+| 3장 API 명세 | 실제 엔드포인트/파라미터와 일치하는지 |
+| 4장 비즈니스 로직 | 실제 구현된 규칙과 일치하는지 |
+| 6장 에러 처리 | 실제 에러 코드와 일치하는지 |
+| 10장 구현 체크리스트 | 완료 항목 체크 |
+
+**변경 사항이 있으면:**
+```markdown
+## 구현 시 변경사항
+
+| 항목 | 스펙 | 실제 구현 | 사유 |
+|------|------|-----------|------|
+| {항목} | {원래 스펙} | {변경된 내용} | {변경 이유} |
+```
+
+### 11. 완료 보고
 
 ```
 ✅ $ARGUMENTS 도메인 구현 완료
