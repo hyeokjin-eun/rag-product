@@ -205,7 +205,8 @@ feat: documents 도메인 업로드 API 구현
     ├─→ service-builder   (service.py)
     ├─→ api-builder       (api/v1/*.py)
     ├─→ test-builder      (tests/)
-    └─→ 빌드/검증         (mypy, ruff, pytest)
+    ├─→ 빌드/검증         (mypy, ruff, pytest)
+    └─→ 문서 최신화       (스펙 ↔ 코드 일치 확인) ★
             ↓
 /review {domain}
     ├─→ spec-reviewer     (스펙 준수)
@@ -221,8 +222,9 @@ feat: documents 도메인 업로드 API 구현
     ├─→ 영향 범위 분석                ├─→ code-analyzer (재활용 분석)
     ├─→ 코드 수정                     ├─→ 스펙 문서 수정
     ├─→ 빌드/검증                     ├─→ 코드 수정
-    └─→ 테스트 확인                   ├─→ 테스트 수정
-            ↓                        ├─→ 빌드/검증
+    ├─→ 테스트 확인                   ├─→ 테스트 수정
+    └─→ 문서 최신화 ★                 ├─→ 빌드/검증
+            ↓                        ├─→ 문서 최신화 확인 ★
       커밋 (fix: ...)                └─→ /review 실행
                                            ↓
                                    커밋 (feat/refactor: ...)
