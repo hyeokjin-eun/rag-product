@@ -140,6 +140,72 @@ docker compose up -d
 - 응답: `*Response` (예: `SearchResponse`)
 - 내부: `*Schema` (예: `DocumentSchema`)
 
+## Git 컨벤션
+
+### 브랜치 네이밍
+
+```
+{type}/{domain}-{description}
+```
+
+| 타입 | 용도 | 예시 |
+|------|------|------|
+| `feature` | 새 기능 | `feature/documents-upload-api` |
+| `fix` | 버그 수정 | `fix/embeddings-timeout-error` |
+| `refactor` | 리팩토링 | `refactor/search-query-optimization` |
+| `docs` | 문서 | `docs/api-documentation` |
+| `test` | 테스트 | `test/documents-integration` |
+
+### 커밋 메시지
+
+```
+{type}: {설명}
+
+{본문 (선택)}
+```
+
+| 타입 | 용도 |
+|------|------|
+| `feat` | 새 기능 추가 |
+| `fix` | 버그 수정 |
+| `docs` | 문서 변경 |
+| `refactor` | 코드 리팩토링 (기능 변경 없음) |
+| `test` | 테스트 추가/수정 |
+| `chore` | 빌드, 설정 등 기타 |
+
+예시:
+```
+feat: documents 도메인 업로드 API 구현
+
+- POST /api/v1/documents 엔드포인트 추가
+- 파일 검증 로직 구현
+- 청킹 서비스 연동
+```
+
+### PR 템플릿
+
+```markdown
+## 요약
+{1줄 설명}
+
+## 변경 내용
+- {변경사항 1}
+- {변경사항 2}
+
+## 관련 스펙
+- `.claude/specs/{domain}.md`
+
+## 테스트
+- [ ] 단위 테스트 통과
+- [ ] 통합 테스트 통과
+- [ ] `/review {domain}` 실행
+
+## 체크리스트
+- [ ] 코드 컨벤션 준수
+- [ ] 타입 힌트 추가
+- [ ] 문서 업데이트 (해당시)
+```
+
 ## 작업 가이드
 
 코딩 작업 시 `.claude/agents/` 하위의 에이전트 가이드를 참조하여 진행한다.
