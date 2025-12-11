@@ -9,6 +9,8 @@
 ## 작업 흐름
 
 ```
+[0. 브랜치 확인/생성] ←── 작업 범위 판단
+        ↓
 [1. 변경 요구사항 수집]
         ↓
 [2. 현재 상태 파악]
@@ -29,12 +31,43 @@
         ↓
 [10. /review 실행]
         ↓
-[11. 완료]
+[11. 커밋 및 PR]
 ```
 
 ---
 
 ## 작업 순서
+
+### 0. 브랜치 확인/생성
+
+#### 현재 브랜치 확인
+```bash
+git branch --show-current
+git status
+```
+
+#### 작업 범위 판단
+
+| 작업 규모 | 기준 | 브랜치 전략 |
+|-----------|------|-------------|
+| 소규모 | 파일 1-2개, 단순 수정 | 현재 브랜치에서 계속 |
+| 중규모 | 파일 3-5개, 로직 변경 | 새 브랜치 생성 |
+| 대규모 | 파일 5개+, 여러 기능 | 브랜치 분리, 사용자와 논의 |
+
+#### 브랜치 생성 (필요시)
+
+```bash
+# develop에서 분기
+git checkout develop
+git pull origin develop
+git checkout -b feature/$ARGUMENTS-{변경내용}
+# 또는 리팩토링인 경우
+git checkout -b refactor/$ARGUMENTS-{변경내용}
+```
+
+**브랜치 네이밍:**
+- 기능 추가/변경: `feature/{domain}-{description}`
+- 리팩토링: `refactor/{domain}-{description}`
 
 ### 1. 변경 요구사항 수집
 
@@ -189,31 +222,65 @@ pytest tests/ -k "{related_domain}" -v
 
 변경 완료 후 `/review $ARGUMENTS` 를 실행하여 검증하세요.
 
-### 11. 완료 보고
+### 11. 커밋 및 PR
+
+#### 커밋
+```bash
+git add .
+git commit -m "feat: $ARGUMENTS {변경 내용 요약}
+
+- {주요 변경 1}
+- {주요 변경 2}"
+# 또는 리팩토링인 경우
+git commit -m "refactor: $ARGUMENTS {변경 내용 요약}"
+```
+
+#### PR 생성 (develop 브랜치로)
+```bash
+git push -u origin feature/$ARGUMENTS-{변경내용}
+```
+
+**PR 템플릿:**
+```markdown
+## 요약
+$ARGUMENTS 도메인 {변경 내용}
+
+## 변경 내용
+- {변경사항 1}
+- {변경사항 2}
+
+## 관련 스펙
+- `.claude/specs/$ARGUMENTS.md` (변경됨)
+
+## 하위 호환성
+- [ ] 호환 / [ ] 비호환 (마이그레이션 필요)
+
+## 테스트
+- [x] 기존 테스트 통과
+- [x] 변경된 기능 테스트 추가
+- [x] `/review $ARGUMENTS` 실행
+```
+
+### 12. 완료 보고
 
 ```
 ✅ 기능 변경 완료
+
+## 브랜치
+- feature/$ARGUMENTS-{변경내용}
 
 ## 변경 요약
 - {1줄 요약}
 
 ## 스펙 변경
-- `.claude/specs/$ARGUMENTS.md`
-  - {변경된 섹션}: {변경 내용}
+- `.claude/specs/$ARGUMENTS.md`: {변경된 섹션}
 
 ## 코드 변경
 - {파일}: {변경 내용}
 
-## 테스트 변경
-- {테스트 파일}: {변경 내용}
-
-## 하위 호환성
-- {호환성 관련 내용}
-
-## 커밋
-feat: {변경 설명}
-또는
-refactor: {변경 설명}
+## 다음 단계
+1. PR 리뷰 요청
+2. develop 브랜치에 머지
 ```
 
 ---
