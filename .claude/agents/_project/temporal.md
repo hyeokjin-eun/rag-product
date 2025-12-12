@@ -195,7 +195,7 @@ from workers.activities.document_activities import (
 
 
 async def main():
-    client = await Client.connect("localhost:7233")
+    client = await Client.connect("localhost:27233")
 
     worker = Worker(
         client,
@@ -234,7 +234,7 @@ from workers.workflows.embedding_workflow import (
 
 @router.post("/{document_id}/embed")
 async def start_embedding(document_id: str, provider: str = "openai"):
-    client = await Client.connect("localhost:7233")
+    client = await Client.connect("localhost:27233")
 
     handle = await client.start_workflow(
         EmbeddingWorkflow.run,
@@ -264,85 +264,25 @@ async def start_embedding(document_id: str, provider: str = "openai"):
 
 ## Temporal 서비스 실행 (Docker)
 
-### docker-compose.yml에 추가
-
-```yaml
-services:
-  # 기존 Qdrant 서비스...
-
-  temporal:
-    image: temporalio/auto-setup:latest
-    ports:
-      - "7233:7233"   # gRPC (워커/클라이언트 연결)
-    environment:
-      - DB=postgresql
-      - DB_PORT=5432
-      - POSTGRES_USER=temporal
-      - POSTGRES_PWD=temporal
-      - POSTGRES_SEEDS=temporal-db
-      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
-    depends_on:
-      - temporal-db
-
-  temporal-db:
-    image: postgres:15
-    environment:
-      - POSTGRES_USER=temporal
-      - POSTGRES_PASSWORD=temporal
-    volumes:
-      - temporal-db-data:/var/lib/postgresql/data
-
-  temporal-ui:
-    image: temporalio/ui:latest
-    ports:
-      - "8080:8080"   # Temporal Web UI
-    environment:
-      - TEMPORAL_ADDRESS=temporal:7233
-    depends_on:
-      - temporal
-
-volumes:
-  temporal-db-data:
-```
-
-### 간단한 설정 (개발용, SQLite)
-
-```yaml
-services:
-  temporal:
-    image: temporalio/auto-setup:latest
-    ports:
-      - "7233:7233"
-    environment:
-      - DB=sqlite
-      - SKIP_DEFAULT_NAMESPACE_CREATION=false
-
-  temporal-ui:
-    image: temporalio/ui:latest
-    ports:
-      - "8080:8080"
-    environment:
-      - TEMPORAL_ADDRESS=temporal:7233
-    depends_on:
-      - temporal
-```
-
 ### 서비스 실행
 
+Temporal은 이미 `docker-compose.yml`에 포함되어 있습니다.
+
 ```bash
-# Temporal 포함 전체 서비스 실행
+# 전체 서비스 실행 (Qdrant + Temporal)
 docker compose up -d
 
-# Temporal만 실행
-docker compose up -d temporal temporal-ui
+# 상태 확인
+docker compose ps
 ```
 
 ### 접속 정보
 
 | 서비스 | URL | 용도 |
 |--------|-----|------|
-| Temporal gRPC | localhost:7233 | 워커/클라이언트 연결 |
-| Temporal UI | http://localhost:8080 | 웹 대시보드 |
+| Temporal gRPC | localhost:27233 | 워커/클라이언트 연결 |
+| Temporal UI | http://localhost:28080 | 웹 대시보드 |
+| Temporal DB | localhost:25432 | PostgreSQL (워크플로우 상태 저장) |
 
 ### 연결 확인
 
@@ -356,7 +296,7 @@ import asyncio
 from temporalio.client import Client
 
 async def check():
-    client = await Client.connect('localhost:7233')
+    client = await Client.connect('localhost:27233')
     print('Connected to Temporal!')
 
 asyncio.run(check())

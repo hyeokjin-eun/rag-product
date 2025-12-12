@@ -1,61 +1,71 @@
 # RAG Product
 
-Qdrant 벡터 데이터베이스를 활용한 RAG(Retrieval-Augmented Generation) 프로젝트
+Qdrant 벡터 데이터베이스를 활용한 RAG(Retrieval-Augmented Generation) 시스템
 
-## 시작하기
+## 요구사항
 
-### 1. Qdrant 실행
+- Python 3.12+ (pyenv 권장)
+- Docker & Docker Compose
+- uv (패키지 관리자)
 
-```bash
-docker compose up -d
-```
+## 환경 설정
 
-### 2. 접속 정보
-
-| 서비스 | URL | 설명 |
-|--------|-----|------|
-| REST API | http://localhost:6333 | Qdrant REST API |
-| gRPC API | localhost:6334 | Qdrant gRPC API |
-| Web UI | http://localhost:6333/dashboard | Qdrant 대시보드 |
-
-### 3. Python 클라이언트 설치
+### pyenv + uv 설치 (최초 1회)
 
 ```bash
-pip install qdrant-client
+# pyenv 설치
+brew install pyenv
+
+# uv 설치
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# shell 재시작
+source ~/.zshrc
 ```
 
-### 4. 연결 예시
-
-```python
-from qdrant_client import QdrantClient
-
-client = QdrantClient(host="localhost", port=6333)
-
-# 또는 URL로 연결
-client = QdrantClient(url="http://localhost:6333")
-```
-
-## Docker 명령어
+## 빠른 시작
 
 ```bash
-# 실행
+# 1. 인프라 서비스 실행
 docker compose up -d
 
-# 중지
-docker compose down
+# 2. 의존성 설치
+uv sync
 
-# 로그 확인
-docker compose logs -f qdrant
+# 3. 개발 의존성 포함 설치
+uv sync --all-extras
 
-# 데이터 포함 삭제
-docker compose down -v
+# 4. 애플리케이션 실행
+uv run uvicorn app.main:app --reload
 ```
 
-## 프로젝트 구조
+## 서비스 접속 정보
 
+| 서비스 | URL |
+|--------|-----|
+| API | http://localhost:8000 |
+| API Docs | http://localhost:8000/docs |
+| Qdrant REST | http://localhost:26333 |
+| Qdrant Dashboard | http://localhost:26333/dashboard |
+| Temporal UI | http://localhost:28080 |
+| Redis | localhost:26379 |
+
+## 개발 명령어
+
+```bash
+# 타입 체크
+uv run mypy app/
+
+# 린트 검사
+uv run ruff check app/
+
+# 테스트 실행
+uv run pytest
+
+# Temporal 워커 실행
+uv run python -m workers.main
 ```
-rag-product/
-├── docker-compose.yml  # Qdrant 컨테이너 설정
-├── main.py             # 메인 애플리케이션
-└── README.md           # 프로젝트 문서
-```
+
+## 라이선스
+
+MIT

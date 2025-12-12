@@ -15,7 +15,7 @@ Qdrant 벡터 데이터베이스를 활용한 RAG(Retrieval-Augmented Generation
 
 | 구분 | 기술 |
 |------|------|
-| Language | Python 3.x |
+| Language | Python 3.12 |
 | Framework | FastAPI |
 | Vector DB | Qdrant |
 | Workflow | Temporal |
@@ -100,9 +100,9 @@ rag-product/
 │   ├── unit/
 │   └── integration/
 │
-├── docker-compose.yml               # Qdrant + Temporal
-├── requirements.txt
-└── pyproject.toml
+├── docker-compose.yml               # Qdrant + Temporal + Redis
+├── pyproject.toml                   # uv 패키지 관리
+└── uv.lock                          # 의존성 락 파일
 ```
 
 ## 도메인 의존성 규칙
@@ -129,10 +129,13 @@ docker compose up -d
 
 | 서비스 | URL |
 |--------|-----|
-| Qdrant REST | http://localhost:6333 |
-| Qdrant gRPC | localhost:6334 |
-| Qdrant Dashboard | http://localhost:6333/dashboard |
-| Temporal UI | http://localhost:8080 (예정) |
+| Qdrant REST | http://localhost:26333 |
+| Qdrant gRPC | localhost:26334 |
+| Qdrant Dashboard | http://localhost:26333/dashboard |
+| Temporal gRPC | localhost:27233 |
+| Temporal UI | http://localhost:28080 |
+| Temporal DB | localhost:25432 (PostgreSQL) |
+| Redis | localhost:26379 |
 
 ## 프로젝트 특화 에이전트
 
@@ -142,11 +145,13 @@ docker compose up -d
 |----------|------|------|
 | 임베딩 확장 | `agents/_project/embedding.md` | 새 임베딩 모델 추가 |
 | Temporal | `agents/_project/temporal.md` | 워크플로우/액티비티 구현 |
+| Qdrant | `agents/_project/qdrant.md` | 벡터 DB 연동 |
+| Redis | `agents/_project/redis.md` | 캐싱/Rate Limiting |
 
 ## 향후 계획
 
-- [ ] 패키지 구조 생성
-- [ ] Temporal 서비스 docker-compose에 추가
+- [x] 패키지 구조 생성
+- [x] Temporal 서비스 docker-compose에 추가
 - [ ] 임베딩 추상화 및 OpenAI 구현
 - [ ] 문서 처리 파이프라인 구축
 - [ ] API 서버 구현

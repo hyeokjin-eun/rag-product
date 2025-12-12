@@ -1,0 +1,1 @@
+"""RAG Product API application."""
